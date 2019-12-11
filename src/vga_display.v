@@ -30,23 +30,25 @@
 
 
 module vga_display(
-input clk, rst_n, in_r, in_g, in_b,
-output reg out_r, out_g, out_b,
-output reg h_sync, v_sync
+input clk, rst_n, 
+input [3:0] in_r, [3:0] in_g, [3:0] in_b,
+output reg [3:0] out_r, reg [3:0] out_g, reg [3:0] out_b,
+output reg h_sync, v_sync,
+output reg[10:0] h_cnt,
+output reg[10:0] v_cnt
 );
 parameter H_LINE = 800;
 parameter H_VISIBLE = 640;
 parameter H_FRONT_PORCH = 16;
 parameter H_SYNC_PULSE = 96;
 parameter H_BACK_PORCH = 48;
-parameter V_LINE = 449;
+parameter V_LINE = 525;
 parameter V_VISIBLE = 480;
 parameter V_FRONT_PORCH = 10;
 parameter V_SYNC_PULSE = 2;
 parameter V_BACK_PORCH = 33;
-reg[10:0] h_cnt;
-reg[10:0] v_cnt;
-reg[2:0] out_rgb;
+
+reg[11:0] out_rgb;
 /*
     sequential logic
 */
@@ -56,29 +58,29 @@ always@(posedge clk, negedge rst_n) begin
         v_cnt <= 0;
         h_sync <= 0;
         v_sync <= 0;
-        {out_r, out_g, out_b} <= 3'b000;
+        {out_r, out_g, out_b} <= 12'b0000_0000_0000;
     end
     else begin
         //update rgb output
-        if(h_cnt < H_VISIBLE & v_cnt < V_VISIBLE) 
+        if(h_cnt < (H_VISIBLE + H_BACK_PORCH) & h_cnt > H_BACK_PORCH & v_cnt < (V_VISIBLE + V_BACK_PORCH) & v_cnt > V_BACK_PORCH) 
         begin
             {out_r, out_g, out_b} <= out_rgb;
         end
-        else {out_r, out_g, out_b} <= 3'b000;
+        else {out_r, out_g, out_b} <= 12'b0000_0000_0000;
         
         //update h_sync, v_sync
-        if((h_cnt >= (H_VISIBLE + H_FRONT_PORCH)) & (h_cnt < (H_VISIBLE + H_FRONT_PORCH + H_SYNC_PULSE)))
+        if((h_cnt >= (H_VISIBLE + H_FRONT_PORCH + H_BACK_PORCH)) & (h_cnt < (H_LINE)))
             h_sync <= 0;
         else h_sync <= 1;
-        if((v_cnt >= (V_VISIBLE + V_FRONT_PORCH)) & (v_cnt < (V_VISIBLE + V_FRONT_PORCH + V_SYNC_PULSE)))
+        if((v_cnt >= (V_VISIBLE + V_FRONT_PORCH + V_BACK_PORCH)) & (v_cnt < (V_LINE)))
             v_sync <= 0;
         else v_sync <= 1;
 
         //update h_cnt, v_cnt
-        if(h_cnt >= ((H_VISIBLE + H_FRONT_PORCH + H_SYNC_PULSE + H_BACK_PORCH) - 1)) 
+        if(h_cnt >= H_LINE) 
         begin
             h_cnt <= 0;
-            if(v_cnt >= ((V_VISIBLE + V_FRONT_PORCH + V_SYNC_PULSE + H_BACK_PORCH) - 1))
+            if(v_cnt >= V_LINE)
                 v_cnt <= 0;
             else v_cnt <= v_cnt + 1;
         end
