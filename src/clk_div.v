@@ -35,13 +35,16 @@ always@(posedge clk,negedge rst_n) begin
         counter <= 0;
         clk_out <= 0;
     end
-    else
-    if(counter >= ((period >> 1) - 1)) begin
+    else begin
+    if(counter >= ((period >> 1) - 1)) 
+    begin
         clk_out <= ~clk_out;
         counter <= 0;
     end
-    else begin
+    else 
+    begin
         counter <= counter + 1;
+    end
     end
 end 
 endmodule
