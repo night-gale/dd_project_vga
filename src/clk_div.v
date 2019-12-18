@@ -36,7 +36,7 @@ always@(posedge clk,negedge rst_n) begin
         clk_out <= 0;
     end
     else
-    if(counter == ((period >> 1) - 1)) begin
+    if(counter >= ((period >> 1) - 1)) begin
         clk_out <= ~clk_out;
         counter <= 0;
     end

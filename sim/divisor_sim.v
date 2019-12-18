@@ -3,16 +3,14 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2019/12/09 21:10:22
+// Create Date: 2019/12/18 17:25:44
 // Design Name: 
-// Module Name: divisor_sim
+// Module Name: clk_div_sim
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
 // Description: 
-// @brief: 
-// @param clk   时钟
-// @param rst_n   复位
+// 
 // Dependencies: 
 // 
 // Revision:
@@ -22,12 +20,13 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module divisor_sim();
+module clk_div_sim();
 reg clk;
 reg rst_n;
-reg period;
+reg [10:0] period;
 wire clk_out;
-clk_div cd(clk, rst_n, clk_out);
+wire [10:0] counter;
+clk_div cd(clk, rst_n, period, clk_out, counter);
 initial begin
 clk = 0; 
 rst_n = 0;
