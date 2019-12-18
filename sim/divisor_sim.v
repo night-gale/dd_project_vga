@@ -25,12 +25,15 @@
 module divisor_sim();
 reg clk;
 reg rst_n;
+reg period;
 wire clk_out;
 clk_div cd(clk, rst_n, clk_out);
 initial begin
 clk = 0; 
 rst_n = 0;
+period = 4;
 #10 rst_n = 1;
+#100 period = 2;
 end
 always begin
     #10 clk = ~clk;

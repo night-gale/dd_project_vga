@@ -10,10 +10,10 @@
 // Target Devices: 
 // Tool Versions: 
 // Description: 时钟分频
-// @param clk 板载时钟输入
-// @param rst_n 复位 低电平有效
-// @param clk_output 分频输出
-// @parameter counter 分频系数 默认为4
+// @port clk 板载时钟输入
+// @port rst_n 复位 低电平有效
+// @port clk_output 分频输出
+// @port period 分频系数
 // Dependencies: 
 // 
 // Revision:
@@ -25,9 +25,9 @@
 
 module clk_div(
 input clk, rst_n,
+input [2:0] period,
 output reg clk_out
     );
-parameter period = 4;
 reg[2:0] counter;
 
 always@(posedge clk,negedge rst_n) begin
