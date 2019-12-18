@@ -9,11 +9,11 @@
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
-// Description: æ—¶é’Ÿåˆ†é¢‘
-// @port clk æ¿è½½æ—¶é’Ÿè¾“å…¥
-// @port rst_n å¤ä½ ä½ç”µå¹³æœ‰æ•ˆ
-// @port clk_output åˆ†é¢‘è¾“å‡º
-// @port period åˆ†é¢‘ç³»æ•°
+// Description: Ê±ÖÓ·ÖÆµ
+// @port clk °åÔØÊ±ÖÓÊäÈë
+// @port rst_n ¸´Î» µÍµçÆ½ÓĞĞ§
+// @port clk_output ·ÖÆµÊä³ö
+// @port period ·ÖÆµÏµÊı
 // Dependencies: 
 // 
 // Revision:
@@ -24,9 +24,9 @@
 
 
 module clk_div(
-input clk, rst_n,
-input [10:0] period,
-output reg clk_out
+    input clk, rst_n,
+    input [10:0] period,
+    output reg clk_out
     );
 reg[10:0] counter;
 
@@ -35,8 +35,7 @@ always@(posedge clk,negedge rst_n) begin
         counter <= 0;
         clk_out <= 0;
     end
-    else
-    if(counter >= ((period >> 1) - 1)) begin
+    else if(counter >= ((period >> 1) - 1)) begin
         clk_out <= ~clk_out;
         counter <= 0;
     end
