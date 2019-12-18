@@ -10,16 +10,17 @@
 // Target Devices: 
 // Tool Versions: 
 // Description: vga 输出
-// @param clk 时钟输入（分频后）
-// @param rst_n 复位 低电平有效
-// @param h_sync output horizontal synchronize 
-// @param v_sync output vertical synchronize
-// @param out_r output red signal
-// @param out_g output green signal
-// @param out_b output blue signal
-// @param in_r input red signal
-// @param in_g input green signal
-// @param in_b input blue signal
+// @port clk 时钟输入（分频后）
+// @port rst_n 复位 低电平有效
+// @port h_sync output horizontal synchronize *connect to vga_port
+// @port v_sync output vertical synchronize  *connect to vga_port
+// @port out_r output red signal  *connect to vga_port
+// @port out_g output green signal *connect to vga_port
+// @port out_b output blue signal *connect to vga_port
+// @port in_r input red signal
+// @port in_g input green signal
+// @port in_b input blue signal
+// @port freq_factor  分频系数 
 // Dependencies: 
 // 
 // Revision:
@@ -32,26 +33,92 @@
 module vga_display(
 input clk, rst_n, 
 input [3:0] in_r, [3:0] in_g, [3:0] in_b,
+input [2:0] resolution_select,
 output reg [3:0] out_r, reg [3:0] out_g, reg [3:0] out_b,
 output reg h_sync, v_sync,
 output reg[10:0] h_cnt,
-output reg[10:0] v_cnt
+output reg[10:0] v_cnt,
+output reg[2:0] freq_factor,
+output reg[10:0] H_BACK_PORCH,
+output reg[10:0] H_VISIBLE,
+output reg[10:0] V_BACK_PORCH,
+output reg[10:0] V_VISIBLE
 );
-parameter H_LINE = 800;
-parameter H_VISIBLE = 640;
-parameter H_FRONT_PORCH = 16;
-parameter H_SYNC_PULSE = 96;
-parameter H_BACK_PORCH = 48;
-parameter V_LINE = 525;
-parameter V_VISIBLE = 480;
-parameter V_FRONT_PORCH = 10;
-parameter V_SYNC_PULSE = 2;
-parameter V_BACK_PORCH = 33;
-
-reg[11:0] out_rgb;
+reg [11:0] out_rgb;
+reg [10:0] H_LINE;
+reg [10:0] H_FRONT_PORCH;
+reg [10:0] H_SYNC_PULSE;
+reg [10:0] V_LINE;
+reg [10:0] V_FRONT_PORCH;
+reg [10:0] V_SYNC_PULSE;
 /*
     sequential logic
 */
+
+always@(resolution_select) begin
+    casex(resolution_select)
+    2'b00: 
+    begin
+        H_LINE = 800;
+        H_VISIBLE = 640;
+        H_FRONT_PORCH = 16;
+        H_SYNC_PULSE = 96;
+        H_BACK_PORCH = 48;
+        V_LINE = 525;
+        V_VISIBLE = 480;
+        V_FRONT_PORCH = 10;
+        V_SYNC_PULSE = 2;
+        V_BACK_PORCH = 33;
+        freq_factor = 4;
+    end
+    2'b01:
+    begin
+    //800 * 600
+        H_LINE = 1040;
+        H_VISIBLE = 800;
+        H_FRONT_PORCH = 56;
+        H_SYNC_PULSE = 120;
+        H_BACK_PORCH = 64;
+        V_LINE = 666;
+        V_VISIBLE = 600;
+        V_FRONT_PORCH = 37;
+        V_SYNC_PULSE = 6;
+        V_BACK_PORCH = 23;
+        freq_factor = 2;
+    end
+    2'b10:
+    begin
+    //640 * 350
+        H_LINE = 800;
+        H_VISIBLE = 640;
+        H_FRONT_PORCH = 16;
+        H_SYNC_PULSE = 96;
+        H_BACK_PORCH = 48;
+        V_LINE = 449;
+        V_VISIBLE = 350;
+        V_FRONT_PORCH = 37;
+        V_SYNC_PULSE = 2;
+        V_BACK_PORCH = 60;
+        freq_factor = 4;
+    end
+    2'b11:
+    begin
+    //1280 * 960
+        H_LINE = 1712;
+        H_VISIBLE = 1280;
+        H_FRONT_PORCH = 80;
+        H_SYNC_PULSE = 136;
+        H_BACK_PORCH = 216;
+        V_LINE = 994;
+        V_VISIBLE = 960;
+        V_FRONT_PORCH = 1;
+        V_SYNC_PULSE = 3;
+        V_BACK_PORCH = 30;
+        freq_factor = 2;
+    end
+    endcase
+
+end
 always@(posedge clk, negedge rst_n) begin
     if(~rst_n) begin
         h_cnt <= 0;
