@@ -28,7 +28,7 @@ input clk, rst_n,
 input [2:0] period,
 output reg clk_out
     );
-reg[2:0] counter;
+reg[10:0] counter;
 
 always@(posedge clk,negedge rst_n) begin
     if(~rst_n) begin
