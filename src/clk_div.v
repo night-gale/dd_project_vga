@@ -25,7 +25,7 @@
 
 module clk_div(
 input clk, rst_n,
-input [2:0] period,
+input [10:0] period,
 output reg clk_out
     );
 reg[10:0] counter;
