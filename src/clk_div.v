@@ -9,11 +9,11 @@
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
-// Description: Ê±ÖÓ·ÖÆµ
-// @port clk °åÔØÊ±ÖÓÊäÈë
-// @port rst_n ¸´Î» µÍµçÆ½ÓÐÐ§
-// @port clk_output ·ÖÆµÊä³ö
-// @port period ·ÖÆµÏµÊý
+// Description: Ê±ï¿½Ó·ï¿½Æµ
+// @port clk ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+// @port rst_n ï¿½ï¿½Î» ï¿½Íµï¿½Æ½ï¿½ï¿½Ð§
+// @port clk_output ï¿½ï¿½Æµï¿½ï¿½ï¿½
+// @port period ï¿½ï¿½ÆµÏµï¿½ï¿½
 // Dependencies: 
 // 
 // Revision:
@@ -39,8 +39,10 @@ always@(posedge clk,negedge rst_n) begin
         clk_out <= ~clk_out;
         counter <= 0;
     end
-    else begin
+    else 
+    begin
         counter <= counter + 1;
+    end
     end
 end 
 endmodule
