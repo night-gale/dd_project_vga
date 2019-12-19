@@ -75,7 +75,14 @@ wire[3:0] strip_r;
 wire[3:0] strip_g;
 wire[3:0] strip_b;
 color_strip strip(
+.clk(clk_divided),
+.rst_n(rst_n),
 .h_cnt(h_cnt), 
+.v_cnt(v_cnt),
+.H_VISIBLE(H_VISIBLE),
+.H_BACK_PORCH(H_BACK_PORCH),
+.V_VISIBLE(V_VISIBLE),
+.V_BACK_PORCH(V_BACK_PORCH),
 .o_r(strip_r), 
 .o_g(strip_g), 
 .o_b(strip_b)
