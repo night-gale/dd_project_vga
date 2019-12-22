@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps
+`timescale 1 ps / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
 // Engineer: 
@@ -24,7 +24,9 @@ module uart_sim();
 reg clk, rst_n, rx_input;
 reg [1:0] brate_selection;
 wire [7:0] byte_data;
-wire  data_valid, freq_factor;
+wire  data_valid ;
+wire [10:0] freq_factor;
+wire clk_uart;
 uart_rx u(
     .clk(clk),
     .rst_n(rst_n),
@@ -32,6 +34,14 @@ uart_rx u(
     .brate_selection(brate_selection),
     .byte_data(byte_data),
     .data_valid(data_valid)
+    ,.freq_factor(freq_factor)
+);
+
+clk_div cd(
+    .clk(clk),
+    .rst_n(rst_n),
+    .period(freq_factor),
+    .clk_out(clk_uart)
 );
 reg [3:0] counter;
 initial
@@ -40,6 +50,7 @@ begin
     rst_n = 0;
     rx_input = 1;
     counter = 0;
+    brate_selection = 0;
     #5 rst_n = 1;
 end
 
