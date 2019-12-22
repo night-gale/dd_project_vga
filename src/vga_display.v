@@ -103,17 +103,17 @@ always@(resolution_select) begin
     end
     2'b11:
     begin
-    //1024x768
-        H_LINE = 1264;
-        H_VISIBLE = 1024;
-        H_FRONT_PORCH = 8;
-        H_SYNC_PULSE = 176;
-        H_BACK_PORCH = 56;
-        V_LINE = 817;
-        V_VISIBLE = 768;
-        V_FRONT_PORCH = 0;
-        V_SYNC_PULSE = 8;
-        V_BACK_PORCH = 41;
+    //768x576
+        H_LINE = 1008;
+        H_VISIBLE = 768;
+        H_FRONT_PORCH = 40;
+        H_SYNC_PULSE = 80;
+        H_BACK_PORCH = 120;
+        V_LINE = 605;
+        V_VISIBLE = 576;
+        V_FRONT_PORCH = 1;
+        V_SYNC_PULSE = 3;
+        V_BACK_PORCH = 22;
         freq_factor = 2;
     end
     endcase

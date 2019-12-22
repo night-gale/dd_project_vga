@@ -40,7 +40,7 @@ module color_strip(
     parameter LIGHT_BLUE = 12'b0000_1111_1111;
     parameter PURPLE = 12'b1111_0000_1111;
     parameter YELLOW = 12'b1111_1111_0000;
-    parameter CHANGE_FREQ = 10;
+    parameter CHANGE_FREQ = 20;
     reg[11:0] color_register1;
     reg[11:0] color_register2;
     reg[11:0] color_register3;
@@ -50,7 +50,7 @@ module color_strip(
     reg[11:0] color_register7;
     reg[11:0] color_register8;
     wire[11:0] shift_register;
-    reg[10:0] divider;
+    wire[10:0] divider;
     reg[10:0] counter;
     reg[3:0] r;
     reg[3:0] g;
@@ -59,10 +59,6 @@ module color_strip(
 always @(posedge clk, negedge rst_n) begin
     if(~rst_n) begin
         {r, g, b} <= 12'b1111_1111_1111;
-        {color_register1, color_register2, color_register3, color_register4, color_register5, color_register6, color_register7, color_register8} 
-            <= {BLACK, WHITE, RED, GREEN, BLUE, LIGHT_BLUE, PURPLE, YELLOW};
-        counter <= 0;
-        divider <= H_VISIBLE/8;
     end
     else begin
         if(h_cnt <= H_BACK_PORCH + divider   )                                      {r, g, b} <= color_register1;
@@ -76,19 +72,27 @@ always @(posedge clk, negedge rst_n) begin
     end
 end
 
-always @(posedge clk) begin
-    if(h_cnt == 0 & v_cnt == 0) begin
-        if(counter == CHANGE_FREQ) begin
-            {color_register1, color_register2, color_register3, color_register4, color_register5, color_register6, color_register7, color_register8}
-                <= {shift_register, color_register1, color_register2, color_register3, color_register4, color_register5, color_register6, color_register7};
-            counter <= 0;
-        end
-        else begin
-            counter <= counter + 1;
+always @(posedge clk, negedge rst_n) begin
+    if(~rst_n) begin
+        {color_register1, color_register2, color_register3, color_register4, color_register5, color_register6, color_register7, color_register8} 
+            <= {BLACK, WHITE, RED, GREEN, BLUE, LIGHT_BLUE, PURPLE, YELLOW};
+        counter <= 0;
+    end
+    else begin
+        if(h_cnt == 0 & v_cnt == 0) begin
+            if(counter == CHANGE_FREQ) begin
+                {color_register1, color_register2, color_register3, color_register4, color_register5, color_register6, color_register7, color_register8}
+                    <= {shift_register, color_register1, color_register2, color_register3, color_register4, color_register5, color_register6, color_register7};
+                counter <= 0;
+            end
+            else begin
+                counter <= counter + 1;
+            end
         end
     end
 end
 
+assign divider = H_VISIBLE/8;
 assign shift_register = color_register8;
 assign o_r = r;
 assign o_g = g;

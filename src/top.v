@@ -28,7 +28,9 @@ module top(
     output [3:0] o_r,
     output [3:0] o_g,
     output [3:0] o_b,
-    output h_sync, v_sync
+    output h_sync, v_sync,
+    output [7:0] bit,
+    output [7:0] value
     );
 
 wire clk_divided;
@@ -71,6 +73,23 @@ vga_display display(
 .V_VISIBLE(V_VISIBLE)
 );
 
+wire clk_res;
+parameter resolution_div = 200000;
+clk_div resClk(
+.clk(clk), 
+.rst_n(rst_n), 
+.period(resolution_div), 
+.clk_out(clk_res)
+);
+
+resolution_display res_display(
+.clk(clk_res), 
+.rst_n(rst_n), 
+.resolution_select(resolution_select),
+.bit(bit),
+.value(value)
+);
+
 wire[3:0] strip_r;
 wire[3:0] strip_g;
 wire[3:0] strip_b;
@@ -105,10 +124,29 @@ ROM_control rom(
 .o_b(rom_b)
 );
 
+wire[3:0] gif_r;
+wire[3:0] gif_g;
+wire[3:0] gif_b;
+gif_display gif(
+.clk(clk_divided), 
+.rst_n(rst_n), 
+.h_cnt(h_cnt), 
+.v_cnt(v_cnt), 
+.H_VISIBLE(H_VISIBLE), 
+.H_BACK_PORCH(H_BACK_PORCH), 
+.V_VISIBLE(V_VISIBLE), 
+.V_BACK_PORCH(V_BACK_PORCH), 
+.o_r(gif_r), 
+.o_g(gif_g), 
+.o_b(gif_b)
+);
+
+
 always @(output_select) begin
     casex(output_select)
-    3'b010: {in_r, in_g, in_b} <= {rom_r, rom_g, rom_b};
     3'b100: {in_r, in_g, in_b} <= {strip_r, strip_g, strip_b};
+    3'b010: {in_r, in_g, in_b} <= {rom_r, rom_g, rom_b};
+    3'b001: {in_r, in_g, in_b} <= {gif_r, gif_g, gif_b};
     default: {in_r, in_g, in_b} <= 12'hfff;
     endcase
 end
