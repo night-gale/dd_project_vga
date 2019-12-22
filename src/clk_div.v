@@ -9,11 +9,11 @@
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
-// Description: ʱ�ӷ�Ƶ
-// @port clk ����ʱ������
-// @port rst_n ��λ �͵�ƽ��Ч
-// @port clk_output ��Ƶ���
-// @port period ��Ƶϵ��
+// Description: 时钟分频
+// @port clk 板载时钟输入
+// @port rst_n 复位 低电平有效
+// @port clk_output 分频输出
+// @port period 分频系数
 // Dependencies: 
 // 
 // Revision:
@@ -24,9 +24,9 @@
 
 
 module clk_div(
-    input clk, rst_n,
-    input [10:0] period,
-    output reg clk_out
+input clk, rst_n,
+input [10:0] period,
+output reg clk_out
     );
 reg[10:0] counter;
 
@@ -35,14 +35,13 @@ always@(posedge clk,negedge rst_n) begin
         counter <= 0;
         clk_out <= 0;
     end
-    else if(counter >= ((period >> 1) - 1)) begin
+    else
+    if(counter >= ((period >> 1) - 1)) begin
         clk_out <= ~clk_out;
         counter <= 0;
     end
-    else 
-    begin
+    else begin
         counter <= counter + 1;
-    end
     end
 end 
 endmodule

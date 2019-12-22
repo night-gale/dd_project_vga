@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: sustech
-// Engineer: wh
+// Company: 
+// Engineer: 
 // 
 // Create Date: 2019/12/18 15:58:18
 // Design Name: 
@@ -13,7 +13,7 @@
 // @port clk input clock divided by freq_factor
 // @port rst_n negative-active reset
 // @port rx_input input pin for receive
-// @port brate_selection 0 for 9600, 1 for 115200
+// @port brate_selection 0 for 9600, 1 for 115200 ,2 for 921600
 // @port byte_data data bits collected,  valid when data_valid is set
 // @port data_valid indicator of the validity of the byte_data
 // @port freq_factor required freqency divisor
@@ -27,8 +27,14 @@
 
 
 module uart_rx(
-clk, rst_n, rx_input, brate_selection,
-byte_data, data_valid, freq_factor
+clk, 
+rst_n, 
+rx_input, 
+brate_selection,
+byte_data, 
+data_valid, 
+freq_factor
+// ,state_o
     );
 parameter START = 3'b000;
 parameter VERIFY = 3'b001;
@@ -47,11 +53,12 @@ reg [3:0] bitcnt;
 reg rx_sync;
 reg [2:0] state;
 reg [2:0] next_state;
-always@(brate_selection)
+always@(brate_selection, freq_factor)
 begin
     casex(brate_selection)
     2'b00: freq_factor = 54;
     2'b01: freq_factor = 651;
+    2'b10: freq_factor = 7;
     endcase
 end
 ////synchronize the rx input signal and update cnt
@@ -77,10 +84,11 @@ begin
             begin
                 bitcnt <= 0;
                 cnt <= 0;
+                data_valid <= 0;
             end
             VERIFY:
             begin
-                data_valid <= 0; //new data comes in
+                 //new data comes in
                 if(next_state == WAIT) cnt <= 0;
             end
             STOP: data_valid <= 1; //all databits received
@@ -137,4 +145,7 @@ begin
     end
     endcase
 end
+
+// output [2:0] state_o;
+// assign state_o = state;
 endmodule
