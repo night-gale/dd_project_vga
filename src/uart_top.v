@@ -43,7 +43,9 @@ V_BACK_PORCH,
 V_VISIBLE,
 o_r,
 o_g,
-o_b
+o_b,
+expand_x,
+expand_y
 //freq_factor_uart
 //,test1,test2
 // ,write_data_led
@@ -62,6 +64,8 @@ output [18:0]      sram_addr;
     
 input clk, clk_read, rst_n;
 input rx_input;
+input expand_x;
+input expand_y;
 input [1:0] brate_selection;
 input [10:0] h_cnt;
 input [10:0] v_cnt; 
@@ -236,7 +240,7 @@ begin
     end
 end
 
-assign addr_rd =(v_cnt-y-V_BACK_PORCH - 1) * img_width + h_cnt - H_BACK_PORCH-x+3;
+assign addr_rd =((v_cnt-y-V_BACK_PORCH - 1) / (expand_y << 1)) * img_width + ((h_cnt - H_BACK_PORCH-x) / (expand_x << 1))+3;
 
 //output test1;
 //assign test1 = data_valid;
