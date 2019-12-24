@@ -9,11 +9,11 @@
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
-// Description: 时钟分频
-// @port clk 板载时钟输入
-// @port rst_n 复位 低电平有效
-// @port clk_output 分频输出
-// @port period 分频系数
+// Description: clock_divide
+// @port clk clock on board (100MHz)
+// @port rst_n reset signal low active
+// @port clk_output clock after divided
+// @port period frequency factor
 // Dependencies: 
 // 
 // Revision:
@@ -24,9 +24,9 @@
 
 
 module clk_div(
-input clk, rst_n,
-input [10:0] period,
-output reg clk_out
+    input clk, rst_n,
+    input [10:0] period,
+    output reg clk_out
     );
 reg[10:0] counter;
 
@@ -35,8 +35,7 @@ always@(posedge clk,negedge rst_n) begin
         counter <= 0;
         clk_out <= 0;
     end
-    else
-    if(counter >= ((period >> 1) - 1)) begin
+    else if(counter >= ((period >> 1) - 1)) begin
         clk_out <= ~clk_out;
         counter <= 0;
     end

@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 2019/12/11 23:27:26
+// Create Date: 2019/12/22 20:23:26
 // Design Name: 
-// Module Name: coe_display
+// Module Name: gif_coedisplay
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module coe_display(
+module gif_coedisplay(
     input clk,
     input rst_n,
     input [10:0] h_cnt,
@@ -36,8 +36,8 @@ module coe_display(
     output [3:0] o_b
     );
     
-    parameter PICTURE_WIDTH = 270;
-    parameter PICTURE_HEIGHT = 384;
+    parameter PICTURE_WIDTH = 320;
+    parameter PICTURE_HEIGHT = 179;
     
     reg x_dir;
     reg y_dir;
@@ -70,7 +70,7 @@ module coe_display(
                 y_dir <= 0;
         end
     end
-    //270x384
+    //320x179
     wire area = (h_cnt > x) & (h_cnt <= x + PICTURE_WIDTH)
                 & (v_cnt > y) & (v_cnt <= y + PICTURE_HEIGHT);
     
