@@ -36,14 +36,11 @@ module top(
     output [18:0] sram_addr,
     inout [15:0] sram_data,
     output sram_lb_n,
-    output sram_ub_n
-    // ,output [18:0] write_data_led
-//    ,output [1:0] write_state
-//    ,output rx_o
+    output sram_ub_n,
     output [7:0] bit,
     output [7:0] value
     );
-//assign rx_o = rx_input;
+    
 wire clk_divided;
 wire [10:0] h_cnt; 
 wire [10:0] v_cnt;
@@ -161,9 +158,7 @@ uart_top uart(
     .o_r(uart_r), 
     .o_g(uart_g), 
     .o_b(uart_b)
-    // ,.write_data_led(write_data_led)
-//    ,.write_state_o(write_state)
-);
+    );
 
 
 wire[3:0] gif_r;
