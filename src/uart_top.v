@@ -155,6 +155,8 @@ begin
         img_height <= 11'b000_0000_0000;
         img_width <= 11'b000_0000_0000;
         data_remained <= 0;
+        x <= 0;
+        y <= 0;
     end
     else
     begin
@@ -184,8 +186,11 @@ begin
         begin
             if(addr_wr == 0)      img_width <= write_data;
             else if(addr_wr == 1) img_height <= write_data;
+            else if(addr_wr == 2) x <= write_data;
+            else if(addr_wr == 3) y <= write_data;
+            if((addr_wr > 1) & (addr_wr >= img_height * img_width)) addr_wr <= 4;
+            else addr_wr <= addr_wr + 1;
             write_en <= 1;
-            addr_wr <= addr_wr + 1;
         end
         endcase
         write_state <= write_state_next;
@@ -222,7 +227,7 @@ begin
     else
     begin
 //        if((h_cnt == 0) & (v_cnt == 0)) addr_rd <= 19'b000_0000_0000_0000_0010;
-        if((h_cnt > H_BACK_PORCH) & (h_cnt < H_BACK_PORCH + img_width) & (v_cnt > (V_BACK_PORCH)) & (v_cnt < (V_BACK_PORCH + img_height)))
+        if((h_cnt > x + H_BACK_PORCH) & (h_cnt < x + H_BACK_PORCH + img_width) & (v_cnt > (y + V_BACK_PORCH)) & (v_cnt < (y + V_BACK_PORCH + img_height)))
         begin
 //            addr_rd <= addr_rd + 1;
             o_read_data <= read_data[11:0];
@@ -231,7 +236,7 @@ begin
     end
 end
 
-assign addr_rd =(v_cnt-V_BACK_PORCH - 1) * img_width + h_cnt - H_BACK_PORCH;
+assign addr_rd =(v_cnt-y-V_BACK_PORCH - 1) * img_width + h_cnt - H_BACK_PORCH-x+3;
 
 //output test1;
 //assign test1 = data_valid;

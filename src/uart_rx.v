@@ -61,7 +61,7 @@ begin
     casex(brate_selection)
     2'b00: freq_factor = 651;
     2'b01: freq_factor = 54;
-    2'b10: freq_factor = 7;
+    2'b10: freq_factor = 6;
     endcase
 end
 ////synchronize the rx input signal and update cnt
