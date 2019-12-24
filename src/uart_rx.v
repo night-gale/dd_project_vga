@@ -43,9 +43,11 @@ parameter SAMPLE = 3'b011;
 parameter STOP = 3'b100;
 
 parameter PERIOD = 16;
+
 output reg data_valid;
 input clk, rst_n, rx_input;
 output reg [7:0] byte_data;
+
 input [1:0] brate_selection;
 output reg [10:0] freq_factor;
 reg [3:0] cnt;
@@ -53,11 +55,12 @@ reg [3:0] bitcnt;
 reg rx_sync;
 reg [2:0] state;
 reg [2:0] next_state;
+reg [7:0] received_data;
 always@(brate_selection, freq_factor)
 begin
     casex(brate_selection)
-    2'b00: freq_factor = 54;
-    2'b01: freq_factor = 651;
+    2'b00: freq_factor = 651;
+    2'b01: freq_factor = 54;
     2'b10: freq_factor = 7;
     endcase
 end
@@ -74,28 +77,37 @@ begin
         cnt <= 0;
         bitcnt <= 0;
         data_valid <= 0;
-        byte_data <= 0;
+        received_data <= 0;
     end
     else 
     begin
-        if(state != START) cnt <= cnt + 1;
         casex(state)
             START: 
             begin
+                data_valid <= 0;
                 bitcnt <= 0;
                 cnt <= 0;
-                data_valid <= 0;
             end
             VERIFY:
             begin
-                 //new data comes in
-                if(next_state == WAIT) cnt <= 0;
+                data_valid <= 0; //new data comes in
+                if(cnt == 4'b0100) cnt <= 0;
+                else cnt <= cnt + 1;
             end
-            STOP: data_valid <= 1; //all databits received
+            STOP:
+            begin 
+                data_valid <= 1; //all databits received
+                byte_data <= received_data;
+            end
             SAMPLE: 
             begin
-                byte_data <= (byte_data << 1) + rx_sync;
+                received_data[bitcnt] = rx_sync;
                 bitcnt <= bitcnt + 1;
+            end
+            WAIT:
+            begin
+                if(cnt >= 4'b1110) cnt <= 4'b0000;
+                else cnt <= cnt + 1;
             end
         endcase
         state <= next_state;
@@ -105,39 +117,29 @@ end
 always@(state, next_state, rx_sync, cnt, bitcnt) 
 begin
     casex(state)
-    STOP:
-    begin
-        next_state = START;
-    end
+    STOP:                         next_state = START;
     START:
     begin
-        if(rx_sync == 0) 
-        begin
-            next_state = VERIFY;
-        end
-        else
-        begin
-            next_state = START;
-        end
+        if(rx_sync == 0)          next_state = VERIFY;
+        else                      next_state = START;
     end
     VERIFY:
     begin
-        if(cnt == 4'b0100 & rx_sync == 0)
+        if(rx_sync == 0)
         begin
-            next_state = WAIT;
+            if( cnt >= 4'b0100 ) next_state = WAIT;
+            else                 next_state = VERIFY;
         end
-        else if(rx_sync == 1)
-        begin 
-            next_state = START;
-        end
-        else if(rx_sync == 1) next_state = START;
+        else                     next_state = START;
     end
     WAIT:
     begin
-        if(cnt == 4'b1100 & bitcnt != 8) 
-            next_state = SAMPLE;
-        else if(cnt == 4'b1110 & bitcnt == 8)
-            next_state = STOP;
+        if(cnt >= 4'b1110)
+        begin
+            if(bitcnt == 8)  next_state = STOP;
+            else             next_state = SAMPLE;
+        end
+        else                 next_state = WAIT;
     end
     SAMPLE:
     begin
@@ -145,6 +147,7 @@ begin
     end
     endcase
 end
+
 
 // output [2:0] state_o;
 // assign state_o = state;

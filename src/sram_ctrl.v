@@ -31,7 +31,7 @@ sram_addr,  //output
 sram_data,  //inout
 sram_lb_n,  //output
 sram_ub_n  //output
-// ,state
+ ,state_o
     );
 
 input clk;
@@ -50,14 +50,17 @@ output reg        sram_oe_n;
 output             sram_ce_n;
 output reg [18:0] sram_addr;
 
-parameter IDLE = 2'b00;
-parameter WRT0 = 2'b01;
-parameter WRT1 = 2'b10;
-parameter READ = 2'b11;
-reg [1:0]state_c;
-reg [1:0]state_n;
+parameter IDLE = 3'b000;
+parameter WRT0 = 3'b001;
+parameter WRT1 = 3'b010;
+parameter WRT2 = 3'b011;
+parameter READ = 3'b100;
+
+reg [2:0]state_c;
+reg [2:0]state_n;
 reg isWrite;
 reg [15:0] sync_write_data;
+reg [18:0] sync_write_addr;
 assign sram_data = isWrite?sync_write_data:16'bzzzz_zzzz_zzzz_zzzz;
 assign sram_ce_n = 0;
 assign sram_lb_n = 0;
@@ -75,7 +78,8 @@ always@(state_c,state_n, wr_req, rd_req)begin
             else if(rd_req) state_n=READ;
             else            state_n=IDLE;
         WRT0:               state_n=WRT1;
-        WRT1:               state_n=IDLE;
+        WRT1:               state_n=WRT2;
+        WRT2:               state_n=IDLE;
         READ:
         begin
             if(~wr_req)	    state_n=READ;
@@ -87,14 +91,14 @@ end
 
 always@(posedge clk, negedge rst_n)
 begin
-    if(~rst_n)       sync_write_data <= 0;
-    else if(state_c == WRT0)    sync_write_data <= write_data;
+    if(~rst_n)                 begin sync_write_data <= 0; sync_write_addr <= 0; end
+    else if(state_c == WRT0)   begin sync_write_data <= write_data; sync_write_addr <= write_addr; end
 end
 
 always@(posedge clk, negedge rst_n)
 begin
     if(~rst_n)             sram_addr<=19'd0;
-    else if(state_c==WRT0) sram_addr<=write_addr;
+    else if(state_c==WRT0) sram_addr<=sync_write_addr;
     else if(state_c==READ) sram_addr<=read_addr;
 end
 
@@ -109,6 +113,7 @@ begin
     if(~rst_n)             isWrite<=1'b0;
     else if(state_c==WRT0) isWrite<=1'b1;
     else if(state_c==WRT1) isWrite<=1'b1;
+    else if(state_c==WRT2) isWrite<=1'b1;
     else if(state_c==READ) isWrite<=1'b0;
 end
 
@@ -122,10 +127,10 @@ end
 always@(posedge clk, negedge rst_n)
 begin
     if(~rst_n)                             sram_we_n<=1'b1;
-    else if(state_c==WRT0 | state_c==WRT1) sram_we_n<=1'b0;
+    else if(state_c==WRT1 | state_c==WRT2) sram_we_n<=1'b0;
     else                                   sram_we_n<=1'b1;
 end
 
-// output [1:0] state;
-// assign state=state_c;
+ output [1:0] state_o;
+ assign state_o=state_c[1:0];
 endmodule

@@ -22,15 +22,26 @@
 
 module top(
     input clk,
-    input rst_n,
+    input rst_n, rx_input,
     input [2:0] output_select,
     input [1:0] resolution_select,
+    input [1:0] brate_selection,
     output [3:0] o_r,
     output [3:0] o_g,
     output [3:0] o_b,
-    output h_sync, v_sync
+    output h_sync, v_sync,
+    output sram_we_n,
+    output sram_oe_n,
+    output sram_ce_n,
+    output [18:0] sram_addr,
+    inout [15:0] sram_data,
+    output sram_lb_n,
+    output sram_ub_n
+    // ,output [18:0] write_data_led
+//    ,output [1:0] write_state
+//    ,output rx_o
     );
-
+//assign rx_o = rx_input;
 wire clk_divided;
 wire [10:0] h_cnt; 
 wire [10:0] v_cnt;
@@ -105,11 +116,42 @@ ROM_control rom(
 .o_b(rom_b)
 );
 
+wire [3:0] uart_r;
+wire [3:0] uart_g;
+wire [3:0] uart_b;
+
+uart_top uart(
+    .sram_we_n(sram_we_n),
+    .sram_oe_n(sram_oe_n),
+    .sram_ce_n(sram_ce_n),
+    .sram_addr(sram_addr),
+    .sram_data(sram_data),
+    .sram_lb_n(sram_lb_n),
+   . sram_ub_n(sram_ub_n),
+    .clk(clk),
+    .clk_read(clk_divided),
+    .rst_n(rst_n),
+    .rx_input(rx_input),
+    .brate_selection(brate_selection),
+    .h_cnt(h_cnt),
+    .v_cnt(v_cnt),
+    .H_VISIBLE(H_VISIBLE), 
+    .H_BACK_PORCH(H_BACK_PORCH), 
+    .V_VISIBLE(V_VISIBLE), 
+    .V_BACK_PORCH(V_BACK_PORCH), 
+    .o_r(uart_r), 
+    .o_g(uart_g), 
+    .o_b(uart_b)
+    // ,.write_data_led(write_data_led)
+//    ,.write_state_o(write_state)
+);
+
 always @(output_select) begin
     casex(output_select)
-    3'b010: {in_r, in_g, in_b} <= {rom_r, rom_g, rom_b};
-    3'b100: {in_r, in_g, in_b} <= {strip_r, strip_g, strip_b};
-    default: {in_r, in_g, in_b} <= 12'hfff;
+    3'b010: {in_r, in_g, in_b} = {rom_r, rom_g, rom_b};
+    3'b100: {in_r, in_g, in_b} = {strip_r, strip_g, strip_b};
+    3'b110: {in_r, in_g, in_b} = {uart_r, uart_g, uart_b};
+    default: {in_r, in_g, in_b} = 12'hfff;
     endcase
 end
 

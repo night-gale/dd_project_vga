@@ -46,6 +46,8 @@ o_g,
 o_b
 //freq_factor_uart
 //,test1,test2
+// ,write_data_led
+// ,write_state_o
     );
 
 //output [2:0] test2;
@@ -67,17 +69,17 @@ input [10:0] H_BACK_PORCH;
 input [10:0] H_VISIBLE;
 input [10:0] V_BACK_PORCH;
 input [10:0] V_VISIBLE;
-output [2:0] o_r;
-output [2:0] o_g;
-output [2:0] o_b;
+output [3:0] o_r;
+output [3:0] o_g;
+output [3:0] o_b;
 wire [10:0] freq_factor_uart;
 
-parameter RAM_DEPTH = 19'b111_1111_1111_1111;
-parameter EMPTY = 3'b00;
-parameter ONE_THIRD = 3'b01;
-parameter TWO_THIRD = 3'b10;
-parameter FULL = 3'b11;
-wire [11:0] read_data;
+
+parameter EMPTY = 2'b00;
+parameter ONE_THIRD = 2'b01;
+parameter TWO_THIRD = 2'b10;
+parameter FULL = 2'b11;
+wire [15:0] read_data;
 reg write_en;
 reg data_remained;
 reg [1:0] write_state;
@@ -85,30 +87,33 @@ reg [1:0] write_state_next;
 reg [11:0] write_data;
 reg [3:0] half_data;
 reg [18:0] addr_wr;
-reg [18:0] addr_rd;
-reg [18:0] write_cnt;
+wire [18:0] addr_rd;
+
 
 wire clk_uart;
 wire data_valid;
 wire [7:0] byte_data;
 
-reg [10:0] img_width;
-reg [10:0] img_height;
+reg [11:0] img_width;
+reg [11:0] img_height;
 reg [18:0] read_cnt;
 reg [11:0] o_read_data;
+
+wire [2:0] test2;
 
 assign o_r = o_read_data[11:8];
 assign o_g = o_read_data[7:4];
 assign o_b = o_read_data[3:0];
 
-clk_div cd(
+clk_div cd_uart(
     .clk(clk),
+    .rst_n(rst_n),
     .period(freq_factor_uart),
     .clk_out(clk_uart)
 );
 
 uart_rx u1(
-    .clk(clk),  /*use clk_uart later !*/
+    .clk(clk_uart),  /*use clk_uart later !*/
     .rst_n(rst_n),
     .rx_input(rx_input),
     .brate_selection(brate_selection),
@@ -135,18 +140,20 @@ sram_ctrl u2(
     .read_addr(addr_rd),
     .write_addr(addr_wr),
     .read_data(read_data)
-    
+    ,.state_o(test2)
 );
 
 /*use clk_uart later!*/
-always@(posedge clk, negedge rst_n) 
+always@(posedge clk_uart, negedge rst_n) 
 begin
     if(~rst_n)
     begin
         write_data <= 0;
         write_state <= EMPTY;
         write_en <= 0;
-        addr_wr <= 0;
+        addr_wr <= 19'b000_0000_0000_0000_0000;
+        img_height <= 11'b000_0000_0000;
+        img_width <= 11'b000_0000_0000;
         data_remained <= 0;
     end
     else
@@ -154,14 +161,14 @@ begin
         casex(write_state)
         EMPTY: 
         begin
-            write_en <= 0;
             if(data_valid) write_data[7:0] <= byte_data;
+            write_en <= 0;
         end
         ONE_THIRD: 
         begin
             data_remained <= 0;
             write_en <= 0;
-            if(data_valid) write_data <= {half_data, byte_data};
+            if(data_valid) write_data <= { byte_data, half_data };
         end
         TWO_THIRD:
         begin
@@ -169,18 +176,16 @@ begin
             write_en <= 0;
             if(data_valid)
             begin
-                write_data <= {write_data[7:0], byte_data[3:0]};
+                write_data <= { byte_data[3:0], write_data[7:0]};
                 half_data <= byte_data[7:4];
             end
         end
         FULL:
         begin
-            if(addr_wr == 0)      img_width <= write_data[10:0];
-            else if(addr_wr == 1) img_height <= write_data[10:0];
+            if(addr_wr == 0)      img_width <= write_data;
+            else if(addr_wr == 1) img_height <= write_data;
             write_en <= 1;
-            if((addr_wr >= img_height * img_width + 1) | (addr_wr >= RAM_DEPTH)) addr_wr <= 0;
-            else                                                                 addr_wr <= addr_wr + 1;
-                    
+            addr_wr <= addr_wr + 1;
         end
         endcase
         write_state <= write_state_next;
@@ -210,24 +215,29 @@ always@(posedge clk_read, negedge rst_n)
 begin
     if(~rst_n) 
     begin
-        addr_rd <= 2;
+//        addr_rd <= 19'b000_0000_0000_0000_0010;
         read_cnt <= 0;
         o_read_data <= 0;
     end
     else
     begin
-        if((h_cnt >= H_BACK_PORCH) & (h_cnt < H_BACK_PORCH + img_width) & (v_cnt >= (V_BACK_PORCH)) & (v_cnt < (V_BACK_PORCH + img_height)))
+//        if((h_cnt == 0) & (v_cnt == 0)) addr_rd <= 19'b000_0000_0000_0000_0010;
+        if((h_cnt > H_BACK_PORCH) & (h_cnt < H_BACK_PORCH + img_width) & (v_cnt > (V_BACK_PORCH)) & (v_cnt < (V_BACK_PORCH + img_height)))
         begin
-            addr_rd <= addr_rd + 1;
-            o_read_data <= read_data;
+//            addr_rd <= addr_rd + 1;
+            o_read_data <= read_data[11:0];
         end
         else o_read_data <= 12'b1111_1111_1111;
-        if((addr_rd >= img_height * img_width + 1) | (addr_wr >= RAM_DEPTH)) addr_rd <= 2;
     end
 end
 
+assign addr_rd =(v_cnt-V_BACK_PORCH - 1) * img_width + h_cnt - H_BACK_PORCH;
 
 //output test1;
 //assign test1 = data_valid;
 //assign test2 = write_state;
+// output [18:0] write_data_led;
+// output [1:0] write_state_o;
+// assign write_data_led = sram_addr;
+// assign write_state_o = test2;
 endmodule
