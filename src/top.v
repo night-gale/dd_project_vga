@@ -183,7 +183,7 @@ always @(output_select) begin
     3'b010: {in_r, in_g, in_b} = {rom_r, rom_g, rom_b};
     3'b100: {in_r, in_g, in_b} = {strip_r, strip_g, strip_b};
     3'b110: {in_r, in_g, in_b} = {uart_r, uart_g, uart_b};
-    3'b001: {in_r, in_g, in_b} <= {gif_r, gif_g, gif_b};
+    3'b001: {in_r, in_g, in_b} = {gif_r, gif_g, gif_b};
     default: {in_r, in_g, in_b} = 12'hfff;
     endcase
 end
