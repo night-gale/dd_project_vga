@@ -165,3 +165,11 @@ set_property IOSTANDARD LVCMOS33 [get_ports sram_ce_n]
 
 set_property IOSTANDARD LVCMOS33 [get_ports rx_input]
 set_property PACKAGE_PIN Y19 [get_ports rx_input]
+
+set_property IOSTANDARD LVCMOS33 [get_ports expand_x]
+set_property IOSTANDARD LVCMOS33 [get_ports expand_y]
+set_property PACKAGE_PIN V9 [get_ports expand_x]
+set_property PACKAGE_PIN AB6 [get_ports expand_y]
+
+set_property IOSTANDARD LVCMOS33 [get_ports resolution_button]
+set_property PACKAGE_PIN R1 [get_ports resolution_button]

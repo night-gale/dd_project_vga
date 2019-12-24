@@ -77,7 +77,8 @@ output [3:0] o_r;
 output [3:0] o_g;
 output [3:0] o_b;
 wire [10:0] freq_factor_uart;
-
+reg[10:0] x;
+reg[10:0] y;
 
 parameter EMPTY = 2'b00;
 parameter ONE_THIRD = 2'b01;
@@ -219,7 +220,7 @@ begin
     endcase
 end
 
-
+wire area = (h_cnt > x + H_BACK_PORCH) & (h_cnt < x + H_BACK_PORCH + img_width * (expand_x ? 2 : 1)) & (v_cnt > (y + V_BACK_PORCH)) & (v_cnt < (y + V_BACK_PORCH + img_height * (expand_y ? 2 : 1)));
 always@(posedge clk_read, negedge rst_n) 
 begin
     if(~rst_n) 
@@ -231,7 +232,7 @@ begin
     else
     begin
 //        if((h_cnt == 0) & (v_cnt == 0)) addr_rd <= 19'b000_0000_0000_0000_0010;
-        if((h_cnt > x + H_BACK_PORCH) & (h_cnt < x + H_BACK_PORCH + img_width) & (v_cnt > (y + V_BACK_PORCH)) & (v_cnt < (y + V_BACK_PORCH + img_height)))
+        if(area)
         begin
 //            addr_rd <= addr_rd + 1;
             o_read_data <= read_data[11:0];
@@ -240,8 +241,7 @@ begin
     end
 end
 
-assign addr_rd =((v_cnt-y-V_BACK_PORCH - 1) / (expand_y << 1)) * img_width + ((h_cnt - H_BACK_PORCH-x) / (expand_x << 1))+3;
-
+assign addr_rd =((v_cnt-y-V_BACK_PORCH - 1) / (expand_y ? 2 : 1)) * img_width + ((h_cnt - H_BACK_PORCH-x) / (expand_x ? 2 : 1))+3;
 //output test1;
 //assign test1 = data_valid;
 //assign test2 = write_state;
