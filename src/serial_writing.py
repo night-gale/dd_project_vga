@@ -1,8 +1,8 @@
 import serial
 import binascii
 
-ser = serial.Serial('COM6', 115200)
-file = open('coeFiles\\1uart.coe.txt')
+ser = serial.Serial('COM5', 921600)
+file = open('coeFiles\\1uart.coe (1).txt')
 
 string = ''
 for line in file:
