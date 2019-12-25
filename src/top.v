@@ -24,8 +24,10 @@ module top(
     input clk,
     input rst_n, rx_input,
     input [2:0] output_select,
-    input [1:0] resolution_select,
+    input resolution_button,
     input [1:0] brate_selection,
+    input expand_x,
+    input expand_y,
     output [3:0] o_r,
     output [3:0] o_g,
     output [3:0] o_b,
@@ -52,6 +54,23 @@ wire [10:0] V_BACK_PORCH;
 reg [3:0] in_r;
 reg [3:0] in_g;
 reg [3:0] in_b;
+
+wire button_clk;
+parameter button_period = 1000000;
+clk_div button_clk_div(
+.clk(clk),
+.rst_n(rst_n),
+.period(button_period),
+.clk_out(button_clk)
+);
+
+wire [1:0] resolution_select;
+button_control BT(
+.clk(clk),
+.rst_n(rst_n),
+.button(resolution_button),
+.resolution_select(resolution_select)
+);
 
 clk_div c(
 .clk(clk), 
@@ -157,9 +176,10 @@ uart_top uart(
     .V_BACK_PORCH(V_BACK_PORCH), 
     .o_r(uart_r), 
     .o_g(uart_g), 
-    .o_b(uart_b)
+    .o_b(uart_b),
+    .expand_x(expand_x),
+    .expand_y(expand_y)
     );
-
 
 wire[3:0] gif_r;
 wire[3:0] gif_g;
@@ -180,10 +200,13 @@ gif_display gif(
 
 always @(output_select) begin
     casex(output_select)
-    3'b010: {in_r, in_g, in_b} = {rom_r, rom_g, rom_b};
-    3'b100: {in_r, in_g, in_b} = {strip_r, strip_g, strip_b};
-    3'b110: {in_r, in_g, in_b} = {uart_r, uart_g, uart_b};
     3'b001: {in_r, in_g, in_b} = {gif_r, gif_g, gif_b};
+    3'b011: {in_r, in_g, in_b} = {gif_r, gif_r, gif_r};
+    3'b010: {in_r, in_g, in_b} = {rom_r, rom_g, rom_b};
+    3'b101: {in_r, in_g, in_b} = {rom_b, rom_g, rom_r};
+    3'b110: {in_r, in_g, in_b} = ~{rom_r, rom_g, rom_b};
+    3'b100: {in_r, in_g, in_b} = {strip_r, strip_g, strip_b};
+    3'b111: {in_r, in_g, in_b} = {uart_r, uart_g, uart_b};
     default: {in_r, in_g, in_b} = 12'hfff;
     endcase
 end
